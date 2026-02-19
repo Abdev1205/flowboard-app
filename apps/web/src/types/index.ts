@@ -14,6 +14,8 @@ export interface Task {
   createdAt: string;    // ISO 8601
   updatedAt: string;    // ISO 8601
   version: number;      // optimistic lock counter
+  creatorName?: string;
+  creatorColor?: string;
 }
 
 export interface UserPresence {

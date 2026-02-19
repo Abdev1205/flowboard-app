@@ -17,6 +17,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Pencil, Trash2, X, Check } from 'lucide-react';
 import { usePresenceStore } from '@/store/presenceStore';
 import type { Task } from '@/types';
+import { useRelativeTime } from '@/hooks/useRelativeTime';
 
 interface TaskCardProps {
   task:       Task;
@@ -34,18 +35,7 @@ const COLUMN_COLORS: Record<string, string> = {
   'done': 'var(--color-done)',
 };
 
-// Helper for relative time (simple implementation)
-function getRelativeTime(iso: string) {
-  if (!iso) return '';
-  const date = new Date(iso);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
-  if (diffInSeconds < 60) return 'just now';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-  return `${Math.floor(diffInSeconds / 86400)}d ago`;
-}
+
 
 export function TaskCard({ task, onUpdate, onDelete, isConflict, isOverlay }: TaskCardProps) {
   const [isEditing,   setIsEditing]   = useState(false);
@@ -84,6 +74,9 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict, isOverlay }: Ta
     borderLeftWidth: activeEditor ? '4px' : '0px',
     backgroundColor: isOverlay ? `color-mix(in srgb, ${COLUMN_COLORS[task.columnId]}, white 90%)` : undefined,
   };
+
+  // Auto-updating relative time
+  const timeString = useRelativeTime(task.updatedAt || task.createdAt);
 
   // Focus title input when entering edit mode
   useEffect(() => {
@@ -246,12 +239,16 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict, isOverlay }: Ta
       <div className="mt-3 pl-0 flex items-center justify-between">
          <div className="flex items-center gap-2">
             {!isDone && (
-              <div className="w-5 h-5 rounded-full bg-[var(--color-brand-100)] flex items-center justify-center text-[9px] font-bold text-[var(--color-brand-700)]">
-                 A
+              <div 
+                className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-sm"
+                style={{ backgroundColor: task.creatorColor || 'var(--color-brand-500)' }}
+                title={`Created by ${task.creatorName || 'Anonymous'}`}
+              >
+                 {(task.creatorName || 'A')[0].toUpperCase()}
               </div>
             )}
             <span className="text-[10px] text-[var(--color-text-tertiary)] font-medium">
-              {getRelativeTime(task.updatedAt || task.createdAt)}
+              {timeString}
             </span>
          </div>
       </div>

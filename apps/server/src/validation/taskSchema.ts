@@ -55,6 +55,8 @@ export const CreateTaskPayloadSchema = z.object({
   columnId:    ColumnIdSchema,
   title:       z.string().min(1, 'Title is required').max(500, 'Title too long'),
   description: z.string().max(5000, 'Description too long').optional(),
+  creatorName: z.string().optional(),
+  creatorColor: z.string().optional(),
 });
 export type CreateTaskPayload = z.infer<typeof CreateTaskPayloadSchema>;
 

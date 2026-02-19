@@ -33,6 +33,8 @@ export interface Task {
   createdAt:   string;
   updatedAt:   string;
   version:     number;
+  creatorName?: string;
+  creatorColor?: string;
 }
 
 export interface ServiceResult<T> {
@@ -71,6 +73,8 @@ function taskToHash(task: Task): Record<string, string> {
     createdAt:   task.createdAt,
     updatedAt:   task.updatedAt,
     version:     String(task.version),
+    creatorName: task.creatorName || '',
+    creatorColor: task.creatorColor || '',
   };
 }
 
@@ -85,6 +89,8 @@ function hashToTask(hash: Record<string, string>): Task {
     createdAt:   hash.createdAt,
     updatedAt:   hash.updatedAt,
     version:     parseInt(hash.version, 10),
+    creatorName: hash.creatorName || undefined,
+    creatorColor: hash.creatorColor || undefined,
   };
 }
 
@@ -146,6 +152,8 @@ function dbRowToTask(row: Record<string, any>): Task {
     createdAt:   row.created_at  as string,
     updatedAt:   row.updated_at  as string,
     version:     row.version     as number,
+    creatorName: row.creator_name as string,
+    creatorColor: row.creator_color as string,
   };
 }
 
@@ -222,6 +230,8 @@ export async function createTask(
       createdAt:   now,
       updatedAt:   now,
       version:     1,
+      creatorName: payload.creatorName || 'Anonymous',
+      creatorColor: payload.creatorColor || '#cbd5e1',
     };
 
     await cacheTask(task);

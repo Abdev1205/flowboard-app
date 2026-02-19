@@ -124,6 +124,16 @@ export async function enqueueDatabaseFlush(payload: FlushJobPayload): Promise<vo
     jobId = `rebalance_${payload.columnId}`;
   }
 
+  // Remove existing job to ensure the latest operation wins (debounce)
+  const existingJob = await queue.getJob(jobId);
+  if (existingJob) {
+    try {
+      await existingJob.remove();
+    } catch (err) {
+      // Ignore "job not found" or similar states if job finished just now
+    }
+  }
+
   await queue.add(payload.operation, payload, {
     jobId,
     delay: FLUSH_DELAY,
@@ -188,6 +198,8 @@ async function handleUpsert(task: Task): Promise<void> {
       version:     task.version,
       created_at:  task.createdAt,
       updated_at:  task.updatedAt,
+      creator_name: task.creatorName,
+      creator_color: task.creatorColor,
     },
     { onConflict: 'id' },
   );
@@ -221,6 +233,7 @@ async function handleRebalance(columnId: ColumnId): Promise<void> {
   const newOrders = rebalancedOrders(data.length);
   const updates   = (data as Array<{ id: string; order: number }>).map((row, i) => ({
     id:         row.id,
+    column_id:  columnId,
     order:      newOrders[i],
     updated_at: new Date().toISOString(),
   }));
