@@ -21,16 +21,23 @@ A Kanban-style task board with real-time collaboration, conflict resolution, and
 
 See [DESIGN.md](./DESIGN.md) for detailed architecture and trade-off analysis.
 
+## Demo 
+- Offline Support 
+<img width="1919" height="1025" alt="image" src="https://github.com/user-attachments/assets/a88d0a56-893c-4128-bad8-0a4330356ad4" />
+<img width="1919" height="1034" alt="image" src="https://github.com/user-attachments/assets/b939a88c-6623-4ab8-a3ce-eff97f273e87" />
+
+- Video
+
+
+https://github.com/user-attachments/assets/adf3bd6c-14ec-4bcb-a7b3-8530d719fb08
+
+
+
 ## Setup Instructions
 
 ### Prerequisites
 - Docker & Docker Compose
 - Node.js 18+ (for local frontend dev)
-
-Offline Support 
-<img width="1919" height="1025" alt="image" src="https://github.com/user-attachments/assets/a88d0a56-893c-4128-bad8-0a4330356ad4" />
-<img width="1919" height="1034" alt="image" src="https://github.com/user-attachments/assets/b939a88c-6623-4ab8-a3ce-eff97f273e87" />
-
 
 
 ### Running Locally
@@ -67,7 +74,7 @@ npm run test
 ## Deployment
 
 ### Live URL
-`https://flowboard-demo.railway.app` *(Placeholder - Deploy to see live version)*
+`https://flowboard.abhaymishra.in` *(Placeholder - Deploy to see live version)*
 
 ### Deployment Guide
 1. **Backend**: Deploy `apps/server` to Railway/Render. Set `REDIS_URL` and `DATABASE_URL`.
