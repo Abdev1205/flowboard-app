@@ -122,6 +122,7 @@ export function KanbanBoard({
           <div className="rotate-2 opacity-90 pointer-events-none">
             <TaskCard
               task={activeTask}
+              isOverlay
               onUpdate={() => {}}
               onDelete={() => {}}
             />

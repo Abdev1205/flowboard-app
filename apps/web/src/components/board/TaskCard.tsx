@@ -1,3 +1,4 @@
+
 /**
  * components/board/TaskCard.tsx
  *
@@ -13,7 +14,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Pencil, Trash2, X, Check } from 'lucide-react';
+import { Pencil, Trash2, X, Check } from 'lucide-react';
 import { usePresenceStore } from '@/store/presenceStore';
 import type { Task } from '@/types';
 
@@ -23,6 +24,8 @@ interface TaskCardProps {
   onDelete:   (task: Task) => void;
   /** True when CONFLICT_NOTIFY just rolled back this task */
   isConflict?: boolean;
+  /** True when rendered in DragOverlay */
+  isOverlay?: boolean;
 }
 
 const COLUMN_COLORS: Record<string, string> = {
@@ -44,7 +47,7 @@ function getRelativeTime(iso: string) {
   return `${Math.floor(diffInSeconds / 86400)}d ago`;
 }
 
-export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps) {
+export function TaskCard({ task, onUpdate, onDelete, isConflict, isOverlay }: TaskCardProps) {
   const [isEditing,   setIsEditing]   = useState(false);
   const [titleDraft,  setTitleDraft]  = useState(task.title);
   const [descDraft,   setDescDraft]   = useState(task.description);
@@ -71,12 +74,15 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps
   } = useSortable({ id: task.id, data: { task } });
 
   const style = {
-    transform:  CSS.Transform.toString(transform),
-    transition,
-    opacity:    isDragging ? 0.4 : 1,
+    // If dragging in overlay, don't apply transform (wrapper handles it)
+    transform:  isOverlay ? undefined : CSS.Transform.toString(transform),
+    transition: isOverlay ? undefined : transition,
+    // Overlay is opaque (or close to it), original is heavily dimmed
+    opacity:    isOverlay ? 1 : (isDragging ? 0.3 : 1),
     zIndex:     isDragging ? 999 : undefined,
     borderLeftColor: activeEditor ? activeEditor.color : 'transparent',
     borderLeftWidth: activeEditor ? '4px' : '0px',
+    backgroundColor: isOverlay ? `color-mix(in srgb, ${COLUMN_COLORS[task.columnId]}, white 90%)` : undefined,
   };
 
   // Focus title input when entering edit mode
@@ -118,15 +124,18 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps
       style={style}
       className={[
         'group relative rounded-r-lg rounded-l-[4px] p-3',
-        'bg-[var(--color-bg-card)] border border-[var(--color-border)]',
-        'shadow-sm hover:shadow-md',
+        isOverlay 
+          ? 'shadow-[var(--shadow-card-drag)] ring-2 ring-[var(--color-accent-primary)] cursor-grabbing' // Overlay style
+          : 'bg-[var(--color-bg-card)] border border-[var(--color-border)] shadow-sm hover:shadow-md cursor-grab active:cursor-grabbing', // Normal style
         'transition-all duration-[var(--transition-fast)]',
-        'cursor-default select-none',
+        'select-none',
         'animate-fade-in',
         isConflict ? 'animate-pulse-red' : '',
         isDone ? 'opacity-60' : '', // Faded if done
-        isDragging  ? 'shadow-[var(--shadow-card-drag)] ring-2 ring-[var(--color-accent-primary)]' : '',
       ].join(' ')}
+      // Don't attach listeners to the overlay clone
+      {...(isOverlay ? {} : attributes)}
+      {...(isOverlay ? {} : listeners)}
     >
       {/* Editing Pill (instead of rings) if someone is actively editing */}
       {activeEditor && (
@@ -139,21 +148,8 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps
         </div>
       )}
 
-      {/* Header row: drag handle + actions */}
+      {/* Header row: title + actions */}
       <div className="flex items-start gap-2">
-        {/* Drag handle */}
-        {!isEditing && (
-          <button
-            className="mt-0.5 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] cursor-grab active:cursor-grabbing flex-shrink-0 z-10"
-            {...attributes}
-            {...listeners}
-            tabIndex={-1}
-            aria-label="Drag task"
-          >
-            <GripVertical size={14} />
-          </button>
-        )}
-
         {/* Title */}
         <div className="flex-1 min-w-0">
           {isEditing ? (
@@ -164,6 +160,8 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps
               onKeyDown={handleKeyDown}
               className="w-full text-sm font-medium bg-transparent border-b border-[var(--color-accent-primary)] outline-none text-[var(--color-text-primary)] pb-0.5"
               aria-label="Edit task title"
+              // Prevent drag when interacting with input
+              onPointerDown={(e) => e.stopPropagation()}
             />
           ) : (
             <p
@@ -181,31 +179,35 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps
             <>
               <button
                 onClick={commitEdit}
-                className="p-0.5 rounded text-[var(--color-success)] hover:bg-[var(--color-bg-secondary)]"
+                onPointerDown={(e) => e.stopPropagation()} // Prevent drag
+                className="p-1.5 rounded cursor-pointer text-[var(--color-success)] hover:bg-[var(--color-bg-secondary)]"
                 aria-label="Save"
               >
-                <Check size={13} />
+                <Check size={14} />
               </button>
               <button
                 onClick={cancelEdit}
-                className="p-0.5 rounded text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-secondary)]"
+                onPointerDown={(e) => e.stopPropagation()} // Prevent drag
+                className="p-1.5 rounded cursor-pointer text-[var(--color-text-tertiary)] hover:bg-[var(--color-bg-secondary)]"
                 aria-label="Cancel"
               >
-                <X size={13} />
+                <X size={14} />
               </button>
             </>
           ) : (
             <>
               <button
                 onClick={() => setIsEditing(true)}
-                className="p-0.5 rounded text-[var(--color-text-tertiary)] hover:text-[var(--color-accent-primary)] hover:bg-[var(--color-bg-secondary)]"
+                onPointerDown={(e) => e.stopPropagation()} // Prevent drag
+                className="p-1.5 rounded cursor-pointer text-[var(--color-text-tertiary)] hover:text-[var(--color-accent-primary)] hover:bg-[var(--color-bg-secondary)]"
                 aria-label="Edit task"
               >
                 <Pencil size={13} />
               </button>
               <button
                 onClick={() => onDelete(task)}
-                className="p-0.5 rounded text-[var(--color-text-tertiary)] hover:text-[var(--color-danger)] hover:bg-[var(--color-bg-secondary)]"
+                onPointerDown={(e) => e.stopPropagation()} // Prevent drag
+                className="p-1.5 rounded cursor-pointer text-[var(--color-text-tertiary)] hover:text-[var(--color-danger)] hover:bg-[var(--color-bg-secondary)]"
                 aria-label="Delete task"
               >
                 <Trash2 size={13} />
@@ -217,7 +219,7 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps
 
       {/* Description */}
       {(task.description || isEditing) && (
-        <div className="mt-2 pl-5">
+        <div className="mt-2 pl-0">
           {isEditing ? (
             <textarea
               value={descDraft}
@@ -227,6 +229,7 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps
               placeholder="Add description…"
               className="w-full text-xs bg-transparent outline-none resize-none text-[var(--color-text-secondary)] placeholder:text-[var(--color-text-tertiary)] border-b border-[var(--color-border)]"
               aria-label="Edit task description"
+              onPointerDown={(e) => e.stopPropagation()} // Prevent drag
             />
           ) : (
             <p
@@ -240,7 +243,7 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps
       )}
 
       {/* Footer: User Avatar + Time */}
-      <div className="mt-3 pl-5 flex items-center justify-between">
+      <div className="mt-3 pl-0 flex items-center justify-between">
          <div className="flex items-center gap-2">
             {!isDone && (
               <div className="w-5 h-5 rounded-full bg-[var(--color-brand-100)] flex items-center justify-center text-[9px] font-bold text-[var(--color-brand-700)]">
