@@ -18,6 +18,13 @@ dotenv.config({ path: path.join(_cwd, '.env') });
 import app from './app';
 import { registerSocketHandlers } from './ws/router';
 import { startDbFlushWorker } from './jobs/dbFlushWorker';
+import { cleanAllPresences } from './services/presenceService';
+
+// ...
+
+// ── BullMQ Worker ─────────────────────────────────────────────────────────────
+startDbFlushWorker();
+cleanAllPresences().then(() => console.log('[Redis] Presence cleared'));
 
 const PORT        = Number(process.env.PORT ?? 8080);
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? 'http://localhost:5173';

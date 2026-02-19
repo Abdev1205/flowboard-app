@@ -32,8 +32,9 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps
   const titleRef = useRef<HTMLInputElement>(null);
 
   // Who else is editing this card?
-  const editingUsers = usePresenceStore((s) =>
-    Object.values(s.users).filter((u) => u.editingTaskId === task.id),
+  const usersDict = usePresenceStore((s) => s.users);
+  const editingUsers = Object.values(usersDict).filter(
+    (u) => u.editingTaskId === task.id
   );
 
   // dnd-kit sortable

@@ -13,7 +13,8 @@ import { Wifi, WifiOff }    from 'lucide-react';
 const MAX_VISIBLE = 5;
 
 export function PresenceBar() {
-  const users       = usePresenceStore((s) => Object.values(s.users));
+  const usersDict = usePresenceStore((s) => s.users);
+  const users     = Object.values(usersDict);
   const isConnected = useBoardStore((s) => s.isConnected);
 
   const visible  = users.slice(0, MAX_VISIBLE);

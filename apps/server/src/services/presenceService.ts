@@ -169,6 +169,22 @@ export async function getPresence(socketId: string): Promise<UserPresence | null
  * Get all currently-active presences.
  * Used for BOARD_SNAPSHOT and PRESENCE_STATE broadcasts.
  */
+/**
+ * Wipe all presence data.
+ * Called on server startup to remove stale state from previous runs.
+ */
+export async function cleanAllPresences(): Promise<void> {
+  // We only delete the set. Individual hash keys will expire via TTL.
+  await redis.del(ACTIVE_SET_KEY);
+}
+
+/**
+ * Get all currently-active presences.
+ * Used for BOARD_SNAPSHOT and PRESENCE_STATE broadcasts.
+ *
+ * Checks for stale members (IDs in the set but with expired/missing hash keys)
+ * and lazily removes them to keep the set clean.
+ */
 export async function getAllPresences(): Promise<UserPresence[]> {
   const socketIds = await redis.smembers(ACTIVE_SET_KEY);
   if (socketIds.length === 0) return [];
@@ -180,8 +196,12 @@ export async function getAllPresences(): Promise<UserPresence[]> {
   if (!results) return [];
 
   const presences: UserPresence[] = [];
-  for (const [err, hash] of results) {
-    if (!err && hash && typeof hash === 'object' && (hash as Record<string, string>).userId) {
+  const staleIds: string[] = [];
+
+  results.forEach((res, index) => {
+    const [err, hash] = res;
+    // hgetall returns {} if key missing, so check for a required field like userId
+    if (!err && hash && (hash as Record<string, string>).userId) {
       const h = hash as Record<string, string>;
       presences.push({
         userId:        h.userId,
@@ -190,7 +210,16 @@ export async function getAllPresences(): Promise<UserPresence[]> {
         editingTaskId: h.editingTaskId ?? undefined,
         connectedAt:   h.connectedAt,
       });
+    } else {
+      // If key is missing or invalid, mark for removal
+      staleIds.push(socketIds[index]);
     }
+  });
+
+  // Self-heal: remove stale IDs found in the set
+  if (staleIds.length > 0) {
+    await redis.srem(ACTIVE_SET_KEY, ...staleIds);
   }
+
   return presences;
 }

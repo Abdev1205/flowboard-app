@@ -41,9 +41,18 @@ function getSupabaseConfig(): { url: string; key: string } {
   }
 
   // Derive project URL from DATABASE_URL
-  // postgresql://postgres:[password]@db.<ref>.supabase.co:5432/postgres
+  // Postgres Client URL: postgresql://[user]:[password]@[host]:[port]/[db]
   const dbUrl = requireEnv('DATABASE_URL');
-  const match = dbUrl.match(/@db\.([^.]+)\.supabase\.co/);
+
+  // Strategy 1: Try hostname (Direct connection) -> db.<ref>.supabase.co
+  let match = dbUrl.match(/@db\.([^.]+)\.supabase\.co/);
+  
+  // Strategy 2: Try username (Pooler connection) -> [user].[ref]
+  // Matches "postgresql://postgres.ovlnuqrneqcainywsbvx:..."
+  if (!match) {
+    match = dbUrl.match(/:\/\/[\w-]+\.([a-z0-9]{20})[:@]/);
+  }
+
   if (!match) {
     throw new Error(
       '[DB] Cannot derive Supabase project URL from DATABASE_URL. ' +

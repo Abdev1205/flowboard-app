@@ -117,11 +117,11 @@ export async function enqueueDatabaseFlush(payload: FlushJobPayload): Promise<vo
 
   let jobId: string;
   if (payload.operation === 'upsert') {
-    jobId = `task:${payload.task.id}`;
+    jobId = `task_${payload.task.id}`;
   } else if (payload.operation === 'delete') {
-    jobId = `task:${payload.taskId}`;
+    jobId = `task_${payload.taskId}`;
   } else {
-    jobId = `rebalance:${payload.columnId}`;
+    jobId = `rebalance_${payload.columnId}`;
   }
 
   await queue.add(payload.operation, payload, {

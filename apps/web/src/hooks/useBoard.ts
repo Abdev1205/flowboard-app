@@ -54,7 +54,10 @@ export function useBoard(emit: EmitFn) {
       optimisticCreate(optimisticTask);
 
       // 2. Emit (server will create its own ID — confirmCreate replaces this)
-      emit({ type: 'TASK_CREATE', payload: { columnId, title, description } });
+      emit({
+        type: 'TASK_CREATE',
+        payload: { id: optimisticTask.id, columnId, title, description },
+      });
     },
     [tasks, optimisticCreate, emit],
   );

@@ -214,7 +214,7 @@ export async function createTask(
 
     const now  = new Date().toISOString();
     const task: Task = {
-      id:          uuidv4(),
+      id:          payload.id,
       columnId:    payload.columnId as ColumnId,
       title:       payload.title,
       description: payload.description ?? '',

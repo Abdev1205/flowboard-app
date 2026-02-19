@@ -26,11 +26,11 @@ export function useWebSocket(displayName: string) {
   const socketRef = useRef<Socket | null>(null);
   const isOnline  = useRef<boolean>(false);
 
-  const { enqueue, flushQueue }       = useOfflineQueue();
-  const { loadSnapshot, setConnected, confirmCreate,
-          confirmUpdate, confirmMove,  confirmDelete, rollback } = useBoardStore();
-  const { loadUsers }                 = usePresenceStore();
-
+  const { enqueue, flushQueue } = useOfflineQueue();
+  
+  // Use getState() for actions to avoid subscribing to store updates
+  // (which would cause App to re-render on every state change)
+  
   // ── Stable emit — enqueues when offline ───────────────────────────────────
 
   const emit = useCallback((event: ClientEvent) => {
@@ -57,7 +57,7 @@ export function useWebSocket(displayName: string) {
     // ── Connect ────────────────────────────────────────────────────────────
     socket.on('connect', () => {
       isOnline.current = true;
-      setConnected(true);
+      useBoardStore.getState().setConnected(true);
 
       // Replay any ops that accumulated while offline
       const pending = flushQueue();
@@ -69,39 +69,39 @@ export function useWebSocket(displayName: string) {
     // ── Disconnect ─────────────────────────────────────────────────────────
     socket.on('disconnect', () => {
       isOnline.current = false;
-      setConnected(false);
+      useBoardStore.getState().setConnected(false);
     });
 
     // ── Server events → store actions ──────────────────────────────────────
 
     socket.on('BOARD_SNAPSHOT', (payload: Extract<ServerEvent, { type: 'BOARD_SNAPSHOT' }>['payload']) => {
-      loadSnapshot(payload.tasks);
-      loadUsers(payload.presence);
+      useBoardStore.getState().loadSnapshot(payload.tasks);
+      usePresenceStore.getState().loadUsers(payload.presence);
     });
 
     socket.on('TASK_CREATED', (task: Extract<ServerEvent, { type: 'TASK_CREATED' }>['payload']) => {
-      confirmCreate(task);
+      useBoardStore.getState().confirmCreate(task);
     });
 
     socket.on('TASK_UPDATED', (task: Extract<ServerEvent, { type: 'TASK_UPDATED' }>['payload']) => {
-      confirmUpdate(task);
+      useBoardStore.getState().confirmUpdate(task);
     });
 
     socket.on('TASK_MOVED', (task: Extract<ServerEvent, { type: 'TASK_MOVED' }>['payload']) => {
-      confirmMove(task);
+      useBoardStore.getState().confirmMove(task);
     });
 
     socket.on('TASK_DELETED', ({ id }: Extract<ServerEvent, { type: 'TASK_DELETED' }>['payload']) => {
-      confirmDelete(id);
+      useBoardStore.getState().confirmDelete(id);
     });
 
     socket.on('CONFLICT_NOTIFY', (payload: Extract<ServerEvent, { type: 'CONFLICT_NOTIFY' }>['payload']) => {
-      rollback(payload.taskId, payload.resolvedState);
+      useBoardStore.getState().rollback(payload.taskId, payload.resolvedState);
       notifyConflict(payload);
     });
 
     socket.on('PRESENCE_STATE', (users: Extract<ServerEvent, { type: 'PRESENCE_STATE' }>['payload']) => {
-      loadUsers(users);
+      usePresenceStore.getState().loadUsers(users);
     });
 
     socket.on('ERROR', ({ code, message }: Extract<ServerEvent, { type: 'ERROR' }>['payload']) => {
