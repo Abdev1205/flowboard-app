@@ -6,7 +6,7 @@
  * Features:
  *   - dnd-kit useSortable for drag handle
  *   - Inline editing for title and description (double-click)
- *   - Presence avatar ring when another user is editing this task
+ *   - Presence: "User is editing..." pill when active
  *   - Delete button on hover
  *   - Visual conflict flash on rollback (animate-pulse-red)
  */
@@ -25,6 +25,25 @@ interface TaskCardProps {
   isConflict?: boolean;
 }
 
+const COLUMN_COLORS: Record<string, string> = {
+  'todo': 'var(--color-todo)',
+  'in-progress': 'var(--color-inprogress)',
+  'done': 'var(--color-done)',
+};
+
+// Helper for relative time (simple implementation)
+function getRelativeTime(iso: string) {
+  if (!iso) return '';
+  const date = new Date(iso);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  if (diffInSeconds < 60) return 'just now';
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+  return `${Math.floor(diffInSeconds / 86400)}d ago`;
+}
+
 export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps) {
   const [isEditing,   setIsEditing]   = useState(false);
   const [titleDraft,  setTitleDraft]  = useState(task.title);
@@ -36,6 +55,10 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps
   const editingUsers = Object.values(usersDict).filter(
     (u) => u.editingTaskId === task.id
   );
+
+  // Active editor (first one wins for UI display)
+  const activeEditor = editingUsers[0];
+  const isDone = task.columnId === 'done';
 
   // dnd-kit sortable
   const {
@@ -52,6 +75,8 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps
     transition,
     opacity:    isDragging ? 0.4 : 1,
     zIndex:     isDragging ? 999 : undefined,
+    borderLeftColor: activeEditor ? activeEditor.color : 'transparent',
+    borderLeftWidth: activeEditor ? '4px' : '0px',
   };
 
   // Focus title input when entering edit mode
@@ -92,42 +117,42 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps
       ref={setNodeRef}
       style={style}
       className={[
-        'group relative rounded-[var(--radius-card)] p-3',
+        'group relative rounded-r-lg rounded-l-[4px] p-3',
         'bg-[var(--color-bg-card)] border border-[var(--color-border)]',
-        'shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)]',
+        'shadow-sm hover:shadow-md',
         'transition-all duration-[var(--transition-fast)]',
         'cursor-default select-none',
         'animate-fade-in',
         isConflict ? 'animate-pulse-red' : '',
+        isDone ? 'opacity-60' : '', // Faded if done
         isDragging  ? 'shadow-[var(--shadow-card-drag)] ring-2 ring-[var(--color-accent-primary)]' : '',
       ].join(' ')}
     >
-      {/* Presence rings — users editing this task */}
-      {editingUsers.length > 0 && (
-        <div className="absolute -top-1.5 -right-1.5 flex -space-x-1">
-          {editingUsers.map((u) => (
-            <div
-              key={u.userId}
-              title={`${u.displayName} is editing`}
-              className="w-5 h-5 rounded-full border-2 border-[var(--color-bg-card)] ring-1 ring-white/20"
-              style={{ backgroundColor: u.color }}
-            />
-          ))}
+      {/* Editing Pill (instead of rings) if someone is actively editing */}
+      {activeEditor && (
+        <div 
+          className="mb-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium animate-pulse"
+          style={{ backgroundColor: `${activeEditor.color}20`, color: activeEditor.color }}
+        >
+          <div className="w-1.5 h-1.5 rounded-full mr-1.5" style={{ backgroundColor: activeEditor.color }} />
+          {activeEditor.displayName} is editing...
         </div>
       )}
 
       {/* Header row: drag handle + actions */}
       <div className="flex items-start gap-2">
         {/* Drag handle */}
-        <button
-          className="mt-0.5 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] cursor-grab active:cursor-grabbing flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-          {...attributes}
-          {...listeners}
-          tabIndex={-1}
-          aria-label="Drag task"
-        >
-          <GripVertical size={14} />
-        </button>
+        {!isEditing && (
+          <button
+            className="mt-0.5 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] cursor-grab active:cursor-grabbing flex-shrink-0 z-10"
+            {...attributes}
+            {...listeners}
+            tabIndex={-1}
+            aria-label="Drag task"
+          >
+            <GripVertical size={14} />
+          </button>
+        )}
 
         {/* Title */}
         <div className="flex-1 min-w-0">
@@ -142,7 +167,7 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps
             />
           ) : (
             <p
-              className="text-sm font-medium text-[var(--color-text-primary)] leading-snug truncate"
+              className={`text-sm font-medium text-[var(--color-text-primary)] leading-snug truncate ${isDone ? 'line-through decoration-[var(--color-text-tertiary)] text-[var(--color-text-secondary)]' : ''}`}
               onDoubleClick={() => setIsEditing(true)}
             >
               {task.title}
@@ -205,7 +230,7 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps
             />
           ) : (
             <p
-              className="text-xs text-[var(--color-text-secondary)] leading-relaxed line-clamp-2 cursor-text"
+              className={`text-xs text-[var(--color-text-secondary)] leading-relaxed line-clamp-2 cursor-text ${isDone ? 'line-through decoration-[var(--color-text-tertiary)] opacity-80' : ''}`}
               onDoubleClick={() => setIsEditing(true)}
             >
               {task.description}
@@ -214,11 +239,18 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict }: TaskCardProps
         </div>
       )}
 
-      {/* Version badge (dev aid) */}
-      <div className="mt-2 pl-5 flex items-center gap-1.5">
-        <span className="text-[10px] text-[var(--color-text-tertiary)] font-mono">
-          v{task.version}
-        </span>
+      {/* Footer: User Avatar + Time */}
+      <div className="mt-3 pl-5 flex items-center justify-between">
+         <div className="flex items-center gap-2">
+            {!isDone && (
+              <div className="w-5 h-5 rounded-full bg-[var(--color-brand-100)] flex items-center justify-center text-[9px] font-bold text-[var(--color-brand-700)]">
+                 A
+              </div>
+            )}
+            <span className="text-[10px] text-[var(--color-text-tertiary)] font-medium">
+              {getRelativeTime(task.updatedAt || task.createdAt)}
+            </span>
+         </div>
       </div>
     </div>
   );

@@ -9,12 +9,14 @@
  *   5. Show a loading skeleton until BOARD_SNAPSHOT arrives
  */
 import { Toaster } from 'sonner';
+import { useState } from 'react';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useBoard }     from '@/hooks/useBoard';
 import { useBoardStore } from '@/store/boardStore';
 import { KanbanBoard }  from '@/components/board/KanbanBoard';
 import { PresenceBar }  from '@/components/presence/PresenceBar';
 import '@/index.css';
+import { Grid2X2, Plus } from 'lucide-react';
 
 // ── Board loading skeleton ─────────────────────────────────────────────────────
 
@@ -49,9 +51,25 @@ function BoardSkeleton() {
 // ── App ────────────────────────────────────────────────────────────────────────
 
 function App() {
-  const { emit } = useWebSocket('User');   // displayName: real auth later
+  const [displayName, setDisplayName] = useState(() => {
+    return localStorage.getItem('flowboard:displayName') || 'User';
+  });
+
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
+
+  const { emit } = useWebSocket(displayName);   // Reconnects on name change
   const board    = useBoard(emit as Parameters<typeof useBoard>[0]);
   const isLoaded = useBoardStore((s) => s.isLoaded);
+
+  function handleNameSave() {
+    const trimmed = nameDraft.trim();
+    if (trimmed && trimmed !== displayName) {
+      setDisplayName(trimmed);
+      localStorage.setItem('flowboard:displayName', trimmed);
+    }
+    setIsEditingName(false);
+  }
 
   return (
     <div
@@ -60,24 +78,81 @@ function App() {
     >
       {/* ── Top bar ──────────────────────────────────────────────────────── */}
       <header
-        className="flex items-center justify-between px-6 py-3 border-b border-[var(--color-border)] bg-[var(--color-bg-card)] flex-shrink-0"
+        className="relative flex items-center justify-between px-6 py-3 border-b border-[var(--color-border)] bg-[var(--color-bg-card)] flex-shrink-0"
         style={{ boxShadow: '0 1px 0 var(--color-border)' }}
       >
-        {/* Logo */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-[var(--color-accent-primary)] flex items-center justify-center">
-            <span className="text-white text-xs font-bold">FB</span>
+        {/* Left: Logo + User Greeting */}
+        <div className="flex items-center gap-5">
+          {/* Logo (Icon Layout) */}
+          <div className="flex items-center gap-3 select-none">
+            <div className="w-8 h-8 rounded-lg bg-[var(--color-brand-600)] flex items-center justify-center shadow-sm ring-1 ring-black/5">
+              <Grid2X2 className="w-5 h-5 text-white" strokeWidth={2.5} />
+            </div>
+            <span
+              className="text-lg font-bold tracking-tight text-[var(--color-text-primary)]"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              FlowBoard
+            </span>
           </div>
-          <span
-            className="text-base font-semibold text-[var(--color-text-primary)]"
-            style={{ fontFamily: 'var(--font-display)' }}
-          >
-            FlowBoard
+
+          {/* Vertical Divider */}
+          <div className="h-5 w-px bg-[var(--color-border)]" />
+
+          {/* User Greeting */}
+          <div className="flex items-center gap-2" title="Click name to edit">
+            {/* Small Avatar */}
+            <div className="w-6 h-6 rounded-full bg-[var(--color-brand-100)] text-[var(--color-brand-700)] flex items-center justify-center ring-1 ring-[var(--color-brand-200)]">
+              <span className="text-[10px] font-bold">
+                {displayName.charAt(0).toUpperCase()}
+              </span>
+            </div>
+
+            {isEditingName ? (
+              <input
+                autoFocus
+                value={nameDraft}
+                onChange={(e) => setNameDraft(e.target.value)}
+                onBlur={handleNameSave}
+                onKeyDown={(e) => e.key === 'Enter' && handleNameSave()}
+                className="text-sm font-medium text-[var(--color-text-primary)] bg-transparent border-b border-[var(--color-brand-500)] outline-none min-w-[80px] p-0 leading-none"
+              />
+            ) : (
+              <button
+                onClick={() => {
+                  setNameDraft(displayName);
+                  setIsEditingName(true);
+                }}
+                className="text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors decoration-[var(--color-border-strong)] hover:decoration-[var(--color-text-tertiary)] underline underline-offset-4 decoration-dashed"
+              >
+                Hi, {displayName}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Center: Board Title */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block pointer-events-none select-none">
+          <span className="text-sm font-semibold text-[var(--color-text-secondary)] tracking-tight">
+            Q1 Sprint — Engineering
           </span>
         </div>
 
-        {/* Right: PresenceBar */}
-        <PresenceBar />
+        {/* Right: PresenceBar + Action */}
+        <div className="flex items-center gap-4">
+          <PresenceBar />
+          
+          <button 
+            className="flex items-center gap-1.5 bg-[var(--color-brand-600)] hover:bg-[var(--color-brand-700)] text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer"
+            onClick={() => {
+              // TODO: Implement global create task modal or focus first column
+              console.log('New Task clicked');
+            }}
+          >
+            <Plus size={16} strokeWidth={2.5} />
+            <span>New Task</span>
+          </button>
+        </div>
       </header>
 
       {/* ── Board area ───────────────────────────────────────────────────── */}

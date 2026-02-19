@@ -30,7 +30,7 @@ export function PresenceBar() {
           <WifiOff size={14} className="text-[var(--color-danger)]" />
         )}
         <span
-          className={`text-xs font-medium ${
+          className={`text-[10px] font-bold uppercase tracking-wide ${
             isConnected
               ? 'text-[var(--color-success)]'
               : 'text-[var(--color-danger)]'

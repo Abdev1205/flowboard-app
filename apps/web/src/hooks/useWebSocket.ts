@@ -112,9 +112,8 @@ export function useWebSocket(displayName: string) {
       socket.disconnect();
       socketRef.current = null;
     };
-    // displayName is set once at mount — intentionally not in dep array
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // Reconnect if displayName changes (to update presence)
+  }, [displayName]);
 
   return { emit, isOnline: isOnline.current };
 }
