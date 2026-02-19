@@ -17,51 +17,59 @@
  */
 import Redis from 'ioredis';
 
-function buildRedisUrl(): string {
+// Return type is technically RedisOptions but IORedis types are loose here
+function buildRedisConfig(): any {
   const rawUrl = process.env.REDIS_URL ?? '';
   const token  = process.env.REDIS_TOKEN ?? '';
 
-  if (!rawUrl) {
-    throw new Error('[Redis] REDIS_URL environment variable is not set');
-  }
-  if (!token) {
-    throw new Error('[Redis] REDIS_TOKEN environment variable is not set');
-  }
+  if (!rawUrl) throw new Error('[Redis] REDIS_URL not set');
+  if (!token)  throw new Error('[Redis] REDIS_TOKEN not set');
 
-  // If REDIS_URL is already a redis(s):// URL, inject the token as password
-  if (rawUrl.startsWith('redis://') || rawUrl.startsWith('rediss://')) {
-    return rawUrl;
-  }
+  // If full rediss:// URL, parse it (or just return it if we didn't need special options)
+  // But we need family: 4, so we must parse or pass options alongside.
+  
+  // Upstash REST URL handling
+  const hostname = rawUrl.replace(/^https?:\/\//, '').replace(/^rediss?:\/\//, '');
+  
+  // Clean hostname if it keeps port
+  const [hostFromUrl, portStr] = hostname.split(':');
+  const host = hostFromUrl;
+  const port = portStr ? parseInt(portStr, 10) : 6379; // Standard Upstash TCP port
 
-  // Upstash REST URL format → convert to ioredis rediss:// format
-  // https://xyz.upstash.io → rediss://:TOKEN@xyz.upstash.io:6380
-  const hostname = rawUrl.replace(/^https?:\/\//, '');
-  return `rediss://:${token}@${hostname}:6380`;
-}
-
-let _redis: Redis | null = null;
-
-/**
- * Returns the shared Redis client (singleton).
- * Lazy-initialised — safe to import in service files.
- */
-export function getRedis(): Redis {
-  if (_redis) return _redis;
-
-  const connectionUrl = buildRedisUrl();
-
-  _redis = new Redis(connectionUrl, {
-    maxRetriesPerRequest: 3,
+  return {
+    host,
+    port,
+    username: 'default', // Upstash standard user
+    password: token,
+    family:   4, // Force IPv4
+    connectTimeout: 10000, // 10s timeout
+    tls:      {
+      servername: host,
+      rejectUnauthorized: false, 
+    },
+    // Common settings
+    maxRetriesPerRequest: 3, 
     enableReadyCheck:     true,
     lazyConnect:          false,
     retryStrategy: (times: number) => {
       if (times > 5) {
         console.error('[Redis] Max retries exceeded — giving up');
-        return null; // stop retrying
+        return null;
       }
-      return Math.min(times * 200, 2000); // exponential back-off, cap 2s
+      return Math.min(times * 200, 2000);
     },
-  });
+  };
+}
+
+let _redis: Redis | null = null;
+
+export function getRedis(): Redis {
+  if (_redis) return _redis;
+
+  // Use the config object
+  const config = buildRedisConfig();
+  
+  _redis = new Redis(config);
 
   _redis.on('connect', () => console.log('[Redis] Connected to Upstash'));
   _redis.on('ready',   () => console.log('[Redis] Ready'));

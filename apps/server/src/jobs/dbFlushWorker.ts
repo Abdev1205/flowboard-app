@@ -54,12 +54,19 @@ function buildBullMQConnection() {
   // Upstash REST URL → parse to host/port/password
   if (rawUrl.startsWith('https://') || rawUrl.startsWith('http://')) {
     const hostname = rawUrl.replace(/^https?:\/\//, '');
-    return {
+    const config = {
       host:     hostname,
-      port:     6380,
+      port:     6379,
+      username: 'default',
       password: token,
-      tls:      rawUrl.startsWith('https://') ? {} : undefined,
+      family:   4,
+      tls:      {
+        servername: hostname,
+        rejectUnauthorized: false, // Often helps with Upstash/BullMQ handshake issues
+      },
+      maxRetriesPerRequest: null,
     };
+    return config;
   }
 
   // rediss://:<password>@<host>:<port>

@@ -27,6 +27,7 @@ import {
   releaseMoveLock,
   buildConflictPayload,
 } from '../../services/conflictService';
+import { logConflict } from '../../services/auditService';
 
 // ── Helper — emit a typed error back to the calling socket ────────────────────
 
@@ -130,6 +131,17 @@ export async function handleTaskMove(
       'TASK_MOVE',
     );
     socket.emit('CONFLICT_NOTIFY', conflictPayload);
+
+    // FR-14 — fire-and-forget audit log (never blocks the response path)
+    void logConflict({
+      taskId:        payload.id,
+      winnerEvent:   'TASK_MOVE',
+      loserEvent:    'TASK_MOVE',
+      winnerUserId:  'server', // mutex holder — no userId in v1
+      loserUserId:   socket.id,
+      resolvedState: lockResult.resolvedState!,
+      resolutionMsg: conflictPayload.message,
+    });
     return;
   }
 

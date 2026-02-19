@@ -373,5 +373,15 @@ export async function deleteTask(
   }
 }
 
+
+/**
+ * GET a single task by id — exposed for the REST read route.
+ * Redis-first with Supabase cold-boot fallback.
+ */
+export async function getTaskById(id: string): Promise<Task | null> {
+  return getTask(id);
+}
+
 // ── Lock key helper — exported for conflictService ────────────────────────────
 export { LOCK_KEY };
+

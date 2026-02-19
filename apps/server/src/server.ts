@@ -1,6 +1,20 @@
-import http from 'http';
+import http   from 'http';
 import { Server as SocketIOServer } from 'socket.io';
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path   from 'node:path';
+
+// ── Environment loading ───────────────────────────────────────────────────────
+// process.cwd() = apps/server/ (the directory npm run dev is invoked from).
+// In production (Docker/Azure), env vars are injected directly — .env.local
+// won't exist and dotenv silently skips it. That's intentional.
+//
+// Load order (first match per variable wins):
+//   1. .env.local  — dev secrets, git-ignored
+//   2. .env        — shared defaults
+const _cwd = process.cwd();
+dotenv.config({ path: path.join(_cwd, '.env.local') });
+dotenv.config({ path: path.join(_cwd, '.env') });
+
 import app from './app';
 import { registerSocketHandlers } from './ws/router';
 import { startDbFlushWorker } from './jobs/dbFlushWorker';
@@ -30,6 +44,11 @@ io.on('connection', (socket) => {
 
 // ── BullMQ Worker ─────────────────────────────────────────────────────────────
 startDbFlushWorker();
+
+// Force main Redis connection to verify connectivity
+import { redis } from './cache/redis';
+redis.get('ping').then(() => console.log('[Redis] Ping success')).catch(err => console.error('[Redis] Ping failed:', err));
+
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => {

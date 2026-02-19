@@ -1,7 +1,7 @@
 import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import 'dotenv/config';
+import cors    from 'cors';
+import helmet  from 'helmet';
+
 
 const app = express();
 
@@ -32,6 +32,10 @@ app.get('/health', (_req, res) => {
     uptime: Math.floor(process.uptime()),
   });
 });
+
+// ── API Routes ────────────────────────────────────────────────────────────────
+import tasksRouter from './routes/tasks';
+app.use('/api/tasks', tasksRouter);
 
 // ── 404 Catch-All ─────────────────────────────────────────────────────────────
 app.use((_req, res) => {
