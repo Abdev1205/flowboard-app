@@ -1,0 +1,38 @@
+# docker-compose.yml
+#
+# PURPOSE: Server-only container for deployment to Azure Web App.
+# - No local Redis (uses Upstash via REDIS_URL + REDIS_TOKEN in .env)
+# - No local Postgres (uses Supabase via DATABASE_URL in .env)
+# - Frontend is NOT included here — runs via `npm run dev` locally,
+#   and deploys to Vercel independently.
+#
+# Usage:
+#   Local dev server:  docker compose up --build
+#   Production build:  docker compose -f docker-compose.yml up -d
+
+version: '3.9'
+
+services:
+  server:
+    build:
+      context: ./apps/server
+      dockerfile: Dockerfile
+    container_name: flowboard-server
+    image: flowboard-server:latest
+    ports:
+      - '${PORT:-8080}:8080'
+    env_file:
+      # Loads from apps/server/.env (local) by default.
+      # In CI/CD, override via environment injection — do NOT commit .env.
+      - ./apps/server/.env
+    environment:
+      # These can be overridden at runtime without rebuilding the image.
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 8080
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8080/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s

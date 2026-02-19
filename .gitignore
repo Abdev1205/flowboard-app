@@ -1,1 +1,44 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Environment files — only ignore the real secrets file, not templates
+.env
+.env.production
+.env.local
+# Allow template/example files to be committed (no real secrets inside):
+# .env.local, .env.production, .env.example are safe to commit as docs
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+
+# Docker
+.docker/
+
+# Testing
+coverage/
+
+# Docs (internal only)
 /docs

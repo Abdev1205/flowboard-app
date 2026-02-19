@@ -1,0 +1,2 @@
+// components/presence — PresenceBar, UserAvatar will live here
+export {};
