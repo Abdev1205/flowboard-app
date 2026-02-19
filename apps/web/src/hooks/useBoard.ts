@@ -71,7 +71,6 @@ export function useBoard(emit: EmitFn) {
           title, 
           description,
           creatorName: optimisticTask.creatorName,
-
           creatorColor: optimisticTask.creatorColor,
           updatedByName: optimisticTask.updatedByName,
           updatedByColor: optimisticTask.updatedByColor,

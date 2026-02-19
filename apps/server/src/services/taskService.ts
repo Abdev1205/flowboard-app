@@ -271,13 +271,9 @@ export async function updateTask(
       return { ok: false, code: 'NOT_FOUND', message: `Task ${payload.id} not found` };
     }
 
-    // Optimistic version check — client sends the version it last saw
+    // Optimistic version check — relaxed to allow auto-merging of orthogonal edits (Move + Edit).
     if (payload.version !== existing.version) {
-      return {
-        ok:      false,
-        code:    'VERSION_MISMATCH',
-        message: `Expected version ${existing.version}, got ${payload.version}`,
-      };
+      console.warn(`[taskService.updateTask] Version mismatch for task ${payload.id} (client: ${payload.version}, server: ${existing.version}). Auto-merging edit into latest state.`);
     }
 
     const updated: Task = {
@@ -317,12 +313,9 @@ export async function moveTask(
       return { ok: false, code: 'NOT_FOUND', message: `Task ${payload.id} not found` };
     }
 
+    // Optimistic version check — relaxed to allow auto-merging of orthogonal edits (Move + Edit).
     if (payload.version !== existing.version) {
-      return {
-        ok:      false,
-        code:    'VERSION_MISMATCH',
-        message: `Expected version ${existing.version}, got ${payload.version}`,
-      };
+      console.warn(`[taskService.moveTask] Version mismatch for task ${payload.id} (client: ${payload.version}, server: ${existing.version}). Auto-merging move into latest state.`);
     }
 
     const updated: Task = {

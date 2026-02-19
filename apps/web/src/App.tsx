@@ -17,6 +17,7 @@ import { KanbanBoard }  from '@/components/board/KanbanBoard';
 import { PresenceBar }  from '@/components/presence/PresenceBar';
 import '@/index.css';
 import { Grid2X2, Plus } from 'lucide-react';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 // ── Board loading skeleton ─────────────────────────────────────────────────────
 
@@ -157,16 +158,18 @@ function App() {
 
       {/* ── Board area ───────────────────────────────────────────────────── */}
       <main className="flex flex-col flex-1 overflow-hidden">
-        {isLoaded ? (
-          <KanbanBoard
-            onCreateTask={board.createTask}
-            onUpdateTask={board.updateTask}
-            onMoveTask={board.moveTask}
-            onDeleteTask={board.deleteTask}
-          />
-        ) : (
-          <BoardSkeleton />
-        )}
+        <ErrorBoundary>
+          {isLoaded ? (
+            <KanbanBoard
+              onCreateTask={board.createTask}
+              onUpdateTask={board.updateTask}
+              onMoveTask={board.moveTask}
+              onDeleteTask={board.deleteTask}
+            />
+          ) : (
+            <BoardSkeleton />
+          )}
+        </ErrorBoundary>
       </main>
 
       {/* ── Toaster for conflict notifications ───────────────────────────── */}
