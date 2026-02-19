@@ -9,10 +9,12 @@ build/
 .next/
 out/
 
-# Environment files
+# Environment files — only ignore the real secrets file, not templates
 .env
+.env.production
 .env.local
-.env.*.local
+# Allow template/example files to be committed (no real secrets inside):
+# .env.local, .env.production, .env.example are safe to commit as docs
 
 # Logs
 npm-debug.log*

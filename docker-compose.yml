@@ -1,70 +1,38 @@
+# docker-compose.yml
+#
+# PURPOSE: Server-only container for deployment to Azure Web App.
+# - No local Redis (uses Upstash via REDIS_URL + REDIS_TOKEN in .env)
+# - No local Postgres (uses Supabase via DATABASE_URL in .env)
+# - Frontend is NOT included here — runs via `npm run dev` locally,
+#   and deploys to Vercel independently.
+#
+# Usage:
+#   Local dev server:  docker compose up --build
+#   Production build:  docker compose -f docker-compose.yml up -d
+
 version: '3.9'
 
 services:
-  # ── Redis (local dev) ──────────────────────────────────────────────────────
-  redis:
-    image: redis:7-alpine
-    container_name: flowboard-redis
-    ports:
-      - '6379:6379'
-    volumes:
-      - redis-data:/data
-    command: redis-server --appendonly yes
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    networks:
-      - flowboard-net
-
-  # ── Backend Server ─────────────────────────────────────────────────────────
   server:
     build:
       context: ./apps/server
       dockerfile: Dockerfile
     container_name: flowboard-server
+    image: flowboard-server:latest
     ports:
-      - '8080:8080'
+      - '${PORT:-8080}:8080'
+    env_file:
+      # Loads from apps/server/.env (local) by default.
+      # In CI/CD, override via environment injection — do NOT commit .env.
+      - ./apps/server/.env
     environment:
-      NODE_ENV: development
+      # These can be overridden at runtime without rebuilding the image.
+      NODE_ENV: ${NODE_ENV:-production}
       PORT: 8080
-      CORS_ORIGIN: http://localhost:5173
-      REDIS_URL: redis://redis:6379
-      # Override these in a .env file or via docker-compose.override.yml:
-      DATABASE_URL: ${DATABASE_URL}
-      REDIS_TOKEN: ${REDIS_TOKEN:-}
-    depends_on:
-      redis:
-        condition: service_healthy
-    volumes:
-      - ./apps/server/src:/app/src:ro
-    networks:
-      - flowboard-net
     restart: unless-stopped
-
-  # ── Frontend (Vite dev server) ─────────────────────────────────────────────
-  web:
-    build:
-      context: ./apps/web
-      dockerfile: Dockerfile
-    container_name: flowboard-web
-    ports:
-      - '5173:5173'
-    environment:
-      VITE_WS_URL: ws://localhost:8080
-      VITE_API_URL: http://localhost:8080
-    depends_on:
-      - server
-    volumes:
-      - ./apps/web/src:/app/src:ro
-    networks:
-      - flowboard-net
-    restart: unless-stopped
-
-volumes:
-  redis-data:
-
-networks:
-  flowboard-net:
-    driver: bridge
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8080/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
