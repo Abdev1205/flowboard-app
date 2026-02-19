@@ -17,7 +17,8 @@ A Kanban-style task board with real-time collaboration, conflict resolution, and
 - **Frontend**: React, TypeScript, Vite, Zustand, Tailwind CSS, dnd-kit.
 - **Backend**: Node.js, Express, Socket.io, TypeScript.
 - **Database**: PostgreSQL (via Supabase).
-- **Cache**: Redis - used as an authoritative write-around cache and for distributed locks.
+- **Cache**: Redis (via Upstash) - used as an authoritative write-around cache and for distributed locks.
+- **Infrastructure**: Dockerized backend deployed on Azure App Service.
 
 See [DESIGN.md](./DESIGN.md) for detailed architecture and trade-off analysis.
 
@@ -42,14 +43,14 @@ https://github.com/user-attachments/assets/adf3bd6c-14ec-4bcb-a7b3-8530d719fb08
 
 ### Running Locally
 
-1. **Start the backend and services (Redis/Database)**
-   The project is configured to work with a single command:
+1. **Start the backend and services**
+   The project is configured to work with a single command using Docker:
 
    ```bash
    docker compose up --build
    ```
 
-   *Note: The default `docker-compose.yml` sets up the server. If you need a local Postgres/Redis, ensure `.env` points to them or add them to the compose file.*
+   *Note: Ensure `.env` files are configured with valid Supabase and Upstash credentials.*
 
 2. **Start the frontend**
    Open a new terminal:
@@ -74,8 +75,24 @@ npm run test
 ## Deployment
 
 ### Live URL
-`https://flowboard.abhaymishra.in` *(Placeholder - Deploy to see live version)*
+`https://flowboard.abhaymishra.in`
 
-### Deployment Guide
-1. **Backend**: Deploy `apps/server` to Railway/Render. Set `REDIS_URL` and `DATABASE_URL`.
-2. **Frontend**: Deploy `apps/web` to Vercel/Netlify. Set `VITE_WS_URL` to the backend URL.
+### Infrastructure
+- **Frontend**: Vercel/Netlify
+- **Backend**: Azure App Service (Docker Container)
+- **Database**: Supabase (PostgreSQL)
+- **Cache**: Upstash (Redis)
+
+### Deployment Steps
+1. **Build Docker Image**:
+   ```bash
+   docker build -t your-user/flowboard-server .
+   docker push your-user/flowboard-server
+   ```
+2. **Deploy to Azure**:
+   - Create Web App for Containers.
+   - Point to the Docker Hub image.
+   - Configure Environment Variables (from `azure-app-settings.json`).
+3. **Deploy Frontend**:
+   - Push to Vercel.
+   - Set `VITE_WS_URL` to the Azure backend URL.
