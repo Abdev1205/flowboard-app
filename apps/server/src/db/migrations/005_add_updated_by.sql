@@ -1,0 +1,3 @@
+ALTER TABLE tasks
+ADD COLUMN IF NOT EXISTS updated_by_name TEXT,
+ADD COLUMN IF NOT EXISTS updated_by_color TEXT;

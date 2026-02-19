@@ -42,6 +42,7 @@ export function useBoard(emit: EmitFn) {
 
       const { myUserId, users } = usePresenceStore.getState();
       const me = myUserId ? users[myUserId] : null;
+      console.log('[useBoard] createTask me:', me, 'myUserId:', myUserId, 'users:', users);
 
       const optimisticTask: Task = {
         id:          uuidv4(),
@@ -54,6 +55,8 @@ export function useBoard(emit: EmitFn) {
         version:     1,
         creatorName: me?.displayName || 'Anonymous',
         creatorColor: me?.color || '#cbd5e1',
+        updatedByName: me?.displayName || 'Anonymous',
+        updatedByColor: me?.color || '#cbd5e1',
       };
 
       // 1. Instant UI
@@ -68,7 +71,10 @@ export function useBoard(emit: EmitFn) {
           title, 
           description,
           creatorName: optimisticTask.creatorName,
+
           creatorColor: optimisticTask.creatorColor,
+          updatedByName: optimisticTask.updatedByName,
+          updatedByColor: optimisticTask.updatedByColor,
         },
       });
     },
@@ -79,13 +85,22 @@ export function useBoard(emit: EmitFn) {
 
   const updateTask = useCallback(
     (task: Task, patch: { title?: string; description?: string }) => {
+      const { myUserId, users } = usePresenceStore.getState();
+      const me = myUserId ? users[myUserId] : null;
+
       // 1. Instant UI
       optimisticUpdate(task.id, patch);
 
       // 2. Emit
       emit({
         type: 'TASK_UPDATE',
-        payload: { id: task.id, version: task.version, ...patch },
+        payload: { 
+          id: task.id, 
+          version: task.version, 
+          ...patch,
+          updatedByName: me?.displayName || 'Anonymous',
+          updatedByColor: me?.color || '#cbd5e1',
+        },
       });
     },
     [optimisticUpdate, emit],
@@ -136,13 +151,23 @@ export function useBoard(emit: EmitFn) {
 
       const order = orderBetween(prev?.order ?? null, next?.order ?? null);
 
+      const { myUserId, users } = usePresenceStore.getState();
+      const me = myUserId ? users[myUserId] : null;
+
       // 1. Instant UI
       optimisticMove(task.id, toColumn, order);
 
       // 2. Emit
       emit({
         type:    'TASK_MOVE',
-        payload: { id: task.id, columnId: toColumn, order, version: task.version },
+        payload: { 
+          id: task.id, 
+          columnId: toColumn, 
+          order, 
+          version: task.version,
+          updatedByName: me?.displayName || 'Anonymous',
+          updatedByColor: me?.color || '#cbd5e1',
+        },
       });
     },
     [getColumn, optimisticMove, emit],

@@ -241,10 +241,10 @@ export function TaskCard({ task, onUpdate, onDelete, isConflict, isOverlay }: Ta
             {!isDone && (
               <div 
                 className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shadow-sm"
-                style={{ backgroundColor: task.creatorColor || 'var(--color-brand-500)' }}
-                title={`Created by ${task.creatorName || 'Anonymous'}`}
+                style={{ backgroundColor: task.updatedByColor || task.creatorColor || 'var(--color-brand-500)' }}
+                title={`${task.updatedByName ? 'Updated' : 'Created'} by ${task.updatedByName || task.creatorName || 'Anonymous'}`}
               >
-                 {(task.creatorName || 'A')[0].toUpperCase()}
+                 {(task.updatedByName || task.creatorName || 'A')[0].toUpperCase()}
               </div>
             )}
             <span className="text-[10px] text-[var(--color-text-tertiary)] font-medium">

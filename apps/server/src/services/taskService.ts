@@ -35,6 +35,8 @@ export interface Task {
   version:     number;
   creatorName?: string;
   creatorColor?: string;
+  updatedByName?: string;
+  updatedByColor?: string;
 }
 
 export interface ServiceResult<T> {
@@ -75,6 +77,8 @@ function taskToHash(task: Task): Record<string, string> {
     version:     String(task.version),
     creatorName: task.creatorName || '',
     creatorColor: task.creatorColor || '',
+    updatedByName: task.updatedByName || '',
+    updatedByColor: task.updatedByColor || '',
   };
 }
 
@@ -91,6 +95,8 @@ function hashToTask(hash: Record<string, string>): Task {
     version:     parseInt(hash.version, 10),
     creatorName: hash.creatorName || undefined,
     creatorColor: hash.creatorColor || undefined,
+    updatedByName: hash.updatedByName || undefined,
+    updatedByColor: hash.updatedByColor || undefined,
   };
 }
 
@@ -154,6 +160,8 @@ function dbRowToTask(row: Record<string, any>): Task {
     version:     row.version     as number,
     creatorName: row.creator_name as string,
     creatorColor: row.creator_color as string,
+    updatedByName: row.updated_by_name as string,
+    updatedByColor: row.updated_by_color as string,
   };
 }
 
@@ -232,6 +240,8 @@ export async function createTask(
       version:     1,
       creatorName: payload.creatorName || 'Anonymous',
       creatorColor: payload.creatorColor || '#cbd5e1',
+      updatedByName: payload.updatedByName || payload.creatorName || 'Anonymous',
+      updatedByColor: payload.updatedByColor || payload.creatorColor || '#cbd5e1',
     };
 
     await cacheTask(task);
@@ -276,6 +286,8 @@ export async function updateTask(
       description: payload.description ?? existing.description,
       updatedAt:   new Date().toISOString(),
       version:     existing.version + 1,
+      updatedByName: payload.updatedByName ?? existing.updatedByName,
+      updatedByColor: payload.updatedByColor ?? existing.updatedByColor,
     };
 
     await cacheTask(updated);
@@ -319,6 +331,8 @@ export async function moveTask(
       order:    payload.order,
       updatedAt: new Date().toISOString(),
       version:  existing.version + 1,
+      updatedByName: payload.updatedByName ?? existing.updatedByName,
+      updatedByColor: payload.updatedByColor ?? existing.updatedByColor,
     };
 
     // If the old column changed, remove task ID from old column set in Redis

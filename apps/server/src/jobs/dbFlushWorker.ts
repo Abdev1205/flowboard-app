@@ -200,6 +200,8 @@ async function handleUpsert(task: Task): Promise<void> {
       updated_at:  task.updatedAt,
       creator_name: task.creatorName,
       creator_color: task.creatorColor,
+      updated_by_name: task.updatedByName,
+      updated_by_color: task.updatedByColor,
     },
     { onConflict: 'id' },
   );

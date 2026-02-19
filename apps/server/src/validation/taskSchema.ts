@@ -57,6 +57,8 @@ export const CreateTaskPayloadSchema = z.object({
   description: z.string().max(5000, 'Description too long').optional(),
   creatorName: z.string().optional(),
   creatorColor: z.string().optional(),
+  updatedByName: z.string().optional(),
+  updatedByColor: z.string().optional(),
 });
 export type CreateTaskPayload = z.infer<typeof CreateTaskPayloadSchema>;
 
@@ -67,6 +69,8 @@ export const UpdateTaskPayloadSchema = z
     title:       z.string().min(1, 'Title is required').max(500, 'Title too long').optional(),
     description: z.string().max(5000, 'Description too long').optional(),
     version:     versionSchema,
+    updatedByName: z.string().optional(),
+    updatedByColor: z.string().optional(),
   })
   .refine(
     (data) => data.title !== undefined || data.description !== undefined,
@@ -80,6 +84,8 @@ export const MoveTaskPayloadSchema = z.object({
   columnId: ColumnIdSchema,
   order:    orderSchema,
   version:  versionSchema,
+  updatedByName: z.string().optional(),
+  updatedByColor: z.string().optional(),
 });
 export type MoveTaskPayload = z.infer<typeof MoveTaskPayloadSchema>;
 

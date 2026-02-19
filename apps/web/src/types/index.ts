@@ -16,6 +16,8 @@ export interface Task {
   version: number;      // optimistic lock counter
   creatorName?: string;
   creatorColor?: string;
+  updatedByName?: string;
+  updatedByColor?: string;
 }
 
 export interface UserPresence {
