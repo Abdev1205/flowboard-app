@@ -14,7 +14,7 @@ WORKDIR /app
 
 # Copy manifests first for better layer caching
 COPY package*.json ./
-RUN npm ci --ignore-scripts
+RUN npm install --ignore-scripts
 
 # Copy source and compile
 COPY tsconfig.json ./

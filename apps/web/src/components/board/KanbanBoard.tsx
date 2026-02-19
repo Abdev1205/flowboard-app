@@ -11,7 +11,7 @@
  *
  * Each Column receives its sorted task list from the board store.
  */
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -46,7 +46,8 @@ export function KanbanBoard({
 }: KanbanBoardProps) {
   const { getColumn, getTask } = useBoardStore();
   const [activeTask,   setActiveTask]   = useState<Task | null>(null);
-  const [conflictIds,  setConflictIds]  = useState<Set<string>>(new Set());
+  // const [conflictIds,  setConflictIds]  = useState<Set<string>>(new Set());
+  const conflictIds = new Set<string>(); // Placeholder until conflict flashing is implemented
 
   // Pointer sensor: require 8px drag distance to prevent accidental drags
   const sensors = useSensors(
@@ -54,18 +55,7 @@ export function KanbanBoard({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  // ── Flash conflict animation on a task ────────────────────────────────────
 
-  const flashConflict = useCallback((taskId: string) => {
-    setConflictIds((prev) => new Set(prev).add(taskId));
-    setTimeout(() => {
-      setConflictIds((prev) => {
-        const next = new Set(prev);
-        next.delete(taskId);
-        return next;
-      });
-    }, 700); // matches animate-pulse-red keyframe duration
-  }, []);
 
   // ── Drag handlers ──────────────────────────────────────────────────────────
 
