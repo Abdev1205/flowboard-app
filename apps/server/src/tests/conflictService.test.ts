@@ -1,8 +1,8 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { mergeMovAndEdit, buildConflictPayload } from '../src/services/conflictService';
-import type { Task, ColumnId } from '../src/services/taskService';
+import { mergeMovAndEdit, buildConflictPayload } from '../services/conflictService';
+import type { Task, ColumnId } from '../services/taskService';
 
 // Mock helper
 const mockTask = (overrides: Partial<Task> = {}): Task => ({

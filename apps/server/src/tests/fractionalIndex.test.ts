@@ -1,7 +1,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { orderBetween, rebalancedOrders, needsRebalance } from '../src/lib/fractionalIndex';
+import { orderBetween, rebalancedOrders, needsRebalance } from '../lib/fractionalIndex';
 
 describe('fractionalIndex', () => {
   describe('orderBetween', () => {

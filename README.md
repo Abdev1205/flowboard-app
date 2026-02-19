@@ -51,7 +51,7 @@ See [DESIGN.md](./DESIGN.md) for detailed architecture and trade-off analysis.
 
 ## Testing
 
-Unit tests for the ordering logic are included:
+Unit tests for conflict resolution and ordering logic:
 
 ```bash
 cd apps/server
