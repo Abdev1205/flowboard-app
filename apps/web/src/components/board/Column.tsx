@@ -64,7 +64,7 @@ export function Column({
   }
 
   return (
-    <div className="flex flex-col w-72 flex-shrink-0">
+    <div className="flex flex-col w-72 flex-shrink-0 bg-[var(--color-bg-secondary)] rounded-xl p-3 h-fit max-h-full">
       {/* Column header */}
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
@@ -94,7 +94,7 @@ export function Column({
         {/* Add button */}
         <button
           onClick={() => setAdding(true)}
-          className="p-1 rounded-md text-[var(--color-text-tertiary)] hover:text-[var(--color-accent-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors"
+          className="p-1 rounded-md text-[var(--color-text-tertiary)] hover:text-[var(--color-accent-primary)] hover:bg-[var(--color-bg-card)] transition-colors"
           aria-label={`Add task to ${meta.label}`}
         >
           <Plus size={15} />
@@ -105,11 +105,10 @@ export function Column({
       <div
         ref={setNodeRef}
         className={[
-          'flex-1 flex flex-col gap-2 rounded-xl p-2 min-h-[120px]',
-          'transition-colors duration-[var(--transition-fast)]',
+          'flex flex-col gap-3 min-h-[50px] transition-colors duration-[var(--transition-fast)] rounded-lg',
           isOver
-            ? 'bg-[var(--color-accent-light)] border border-dashed border-[var(--color-accent-primary)]'
-            : 'bg-[var(--color-bg-secondary)]',
+            ? 'bg-[var(--color-accent-light)] ring-2 ring-[var(--color-accent-primary)] ring-inset'
+            : '',
         ].join(' ')}
       >
         <SortableContext
@@ -129,7 +128,7 @@ export function Column({
 
         {/* Empty state */}
         {tasks.length === 0 && !isOver && (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="py-8 flex items-center justify-center border-2 border-dashed border-black/5 rounded-lg">
             <p className="text-xs text-[var(--color-text-tertiary)] select-none">
               Drop tasks here
             </p>
@@ -141,7 +140,7 @@ export function Column({
       {adding ? (
         <div
           className={[
-            'mt-2 p-3 rounded-[var(--radius-card)] border border-[var(--color-border)]',
+            'mt-3 p-3 rounded-[var(--radius-card)] border border-[var(--color-border)]',
             'bg-[var(--color-bg-card)] shadow-[var(--shadow-card)] animate-fade-in',
           ].join(' ')}
         >
@@ -183,7 +182,7 @@ export function Column({
       ) : (
         <button
           onClick={() => setAdding(true)}
-          className="mt-2 flex items-center gap-1.5 w-full px-2 py-1.5 rounded-lg text-xs text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-colors"
+          className="mt-3 flex items-center gap-1.5 w-full px-2 py-1.5 rounded-lg text-xs text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] hover:bg-black/5 transition-colors"
         >
           <Plus size={13} />
           Add task
