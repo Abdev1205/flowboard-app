@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+/* ── Google Fonts ─────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400&display=swap');
+
+/* ── Tailwind v4 Theme Tokens ─────────────────────────────────────────────── */
+@theme {
+  /* Fonts */
+  --font-display: 'DM Sans', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Brand colors */
+  --color-brand-50:  #EEF2FD;
+  --color-brand-100: #D4DFFB;
+  --color-brand-500: #2D5BE3;
+  --color-brand-600: #1F47CC;
+  --color-brand-700: #1535A8;
+
+  /* Column accent colors */
+  --color-todo:       #64748B;
+  --color-inprogress: #D97706;
+  --color-done:       #16A34A;
+
+  /* Semantic tokens — Light */
+  --color-bg-primary:      #F8F7F4;
+  --color-bg-secondary:    #EFEDE8;
+  --color-bg-card:         #FFFFFF;
+  --color-bg-card-hover:   #FAFAF9;
+  --color-border:          #E2DDD6;
+  --color-border-strong:   #C8C3BB;
+  --color-text-primary:    #1C1A17;
+  --color-text-secondary:  #6B6560;
+  --color-text-tertiary:   #9D9690;
+  --color-accent-primary:  #2D5BE3;
+  --color-accent-hover:    #1F47CC;
+  --color-accent-light:    #EEF2FD;
+  --color-danger:          #DC2626;
+  --color-warning:         #D97706;
+  --color-success:         #16A34A;
+
+  /* Presence colors */
+  --color-presence-1: #3B82F6;
+  --color-presence-2: #8B5CF6;
+  --color-presence-3: #EC4899;
+  --color-presence-4: #F59E0B;
+  --color-presence-5: #10B981;
+  --color-presence-6: #EF4444;
+
+  /* Box shadows */
+  --shadow-card:      0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-card-drag: 0 16px 32px rgba(0,0,0,0.16), 0 4px 8px rgba(0,0,0,0.08);
+
+  /* Border radii */
+  --radius-card: 8px;
+
+  /* Animation durations */
+  --transition-fast:   150ms;
+  --transition-normal: 250ms;
+  --transition-slow:   350ms;
+}
+
+/* ── Dark Mode Overrides ──────────────────────────────────────────────────── */
+.dark {
+  --color-bg-primary:     #111110;
+  --color-bg-secondary:   #1C1B18;
+  --color-bg-card:        #252420;
+  --color-bg-card-hover:  #2D2C28;
+  --color-border:         #2E2D29;
+  --color-border-strong:  #3D3C37;
+  --color-text-primary:   #F2EFE8;
+  --color-text-secondary: #A09B93;
+  --color-text-tertiary:  #6B6560;
+  --color-accent-primary: #4D7EFF;
+  --color-accent-hover:   #6B96FF;
+  --color-accent-light:   #1A2A50;
+  --color-todo:           #94A3B8;
+  --color-inprogress:     #F59E0B;
+  --color-done:           #22C55E;
+  --shadow-card:          0 1px 3px rgba(0,0,0,0.4);
+}
+
+/* ── Base Styles ──────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+}
+
+/* ── Custom Scrollbar ─────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
+}
+
+/* ── Animations ───────────────────────────────────────────────────────────── */
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes slideInTop {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+@keyframes pulseRed {
+  0%   { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  50%  { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);   }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Utility Classes ──────────────────────────────────────────────────────── */
+.animate-slide-in-right { animation: slideInRight 300ms ease-out; }
+.animate-slide-in-top   { animation: slideInTop 300ms ease-out; }
+.animate-pulse-red      { animation: pulseRed 600ms ease; }
+.animate-fade-in        { animation: fadeIn 200ms ease-out; }

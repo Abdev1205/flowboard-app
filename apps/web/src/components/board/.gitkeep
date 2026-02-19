@@ -1,0 +1,2 @@
+// components/board — KanbanBoard, Column, TaskCard will live here
+export {};

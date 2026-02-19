@@ -1,0 +1,16 @@
+{
+  "name": "flowboard",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w apps/web\" \"npm run dev -w apps/server\"",
+    "build": "npm run build -w apps/web && npm run build -w apps/server",
+    "lint": "npm run lint -w apps/web && npm run lint -w apps/server"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
