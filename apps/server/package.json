@@ -8,6 +8,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "migrate": "ts-node-dev --transpile-only src/db/migrate.ts",
+    "migrate:prod": "node dist/db/migrate.js",
     "test": "ts-node src/tests/run.ts",
     "lint": "eslint src --ext .ts"
   },
