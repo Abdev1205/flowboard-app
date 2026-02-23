@@ -87,7 +87,7 @@ Fractional indexing gives us O(1) writes and O(n log n) reads (sort), which is t
 
 ---
 
-## 3. Write-Around Cache (Redis)
+## 3. Write-Behind Cache (Redis)
 
 ### Why Redis?
 
