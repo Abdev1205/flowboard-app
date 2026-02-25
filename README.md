@@ -17,7 +17,7 @@ A Kanban-style task board with real-time collaboration, conflict resolution, and
 - **Frontend**: React, TypeScript, Vite, Zustand, Tailwind CSS, dnd-kit.
 - **Backend**: Node.js, Express, Socket.io, TypeScript.
 - **Database**: PostgreSQL (via Supabase).
-- **Cache**: Redis (via Upstash) - used as an authoritative write-around cache and for distributed locks.
+- **Cache**: Redis (via Upstash) - used as an authoritative write-behind cache and for distributed locks.
 - **Infrastructure**: Dockerized backend deployed on Azure App Service.
 
 See [DESIGN.md](./DESIGN.md) for detailed architecture and trade-off analysis.
